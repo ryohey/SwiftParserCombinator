@@ -2,10 +2,7 @@ import XCTest
 @testable import SwiftParserCombinator
 
 final class SwiftParserCombinatorTests: XCTestCase {
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct
-        // results.
+    func testHexColor() throws {
         let hash = char("#")
         let hex = charRange("0", "9") || charRange("a", "f")
         let component = map(hex + hex, { (tuple: (String, String)) -> Int in
@@ -17,10 +14,8 @@ final class SwiftParserCombinatorTests: XCTestCase {
         let r = component
         let g = component
         let b = component
-        let gb = g + b
-        let hrgb = hash + r + g + b
-        let colorParser = map(hash + r + g + b, { (tuple: (((String, Int), Int), Int)) in
-            return (r: tuple.0.0.1, g: tuple.0.1, b: tuple.1)
+        let colorParser = map(hash + r + g + b, { (tuple: (String, Int, Int, Int)) in
+            return (r: tuple.1, g: tuple.2, b: tuple.3)
         })
         let input = Iterated(value: "#ff6400", position: 0)
         let result = try colorParser(input)
@@ -34,6 +29,6 @@ final class SwiftParserCombinatorTests: XCTestCase {
     }
 
     static var allTests = [
-        ("testExample", testExample),
+        ("testHexColor", testHexColor),
     ]
 }

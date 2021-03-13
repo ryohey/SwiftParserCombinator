@@ -47,7 +47,40 @@ func ||<Input, Output>(a: @escaping Parser<Input, Output>, b: @escaping Parser<I
     }
 }
 
-func +<Input, Output1, Output2>(a: @escaping Parser<Input, Output1>, b: @escaping Parser<Input, Output2>) -> Parser<Input, (Output1, Output2)> {
+func +<I, O1, O2, O3, O4, O5>(a: @escaping Parser<I, (O1, O2, O3, O4)>, b: @escaping Parser<I, O5>) -> Parser<I, (O1, O2, O3, O4, O5)> {
+    return { input in
+        let output1 = try a(input)
+        let output2 = try b(Iterated(value: input.value, position: output1.position))
+        return Iterated(
+            value: (output1.value.0, output1.value.1, output1.value.2, output1.value.3, output2.value),
+            position: output2.position
+        )
+    }
+}
+
+func +<I, O1, O2, O3, O4>(a: @escaping Parser<I, (O1, O2, O3)>, b: @escaping Parser<I, O4>) -> Parser<I, (O1, O2, O3, O4)> {
+    return { input in
+        let output1 = try a(input)
+        let output2 = try b(Iterated(value: input.value, position: output1.position))
+        return Iterated(
+            value: (output1.value.0, output1.value.1, output1.value.2, output2.value),
+            position: output2.position
+        )
+    }
+}
+
+func +<I, O1, O2, O3>(a: @escaping Parser<I, (O1, O2)>, b: @escaping Parser<I, O3>) -> Parser<I, (O1, O2, O3)> {
+    return { input in
+        let output1 = try a(input)
+        let output2 = try b(Iterated(value: input.value, position: output1.position))
+        return Iterated(
+            value: (output1.value.0, output1.value.1, output2.value),
+            position: output2.position
+        )
+    }
+}
+
+func +<I, O1, O2>(a: @escaping Parser<I, O1>, b: @escaping Parser<I, O2>) -> Parser<I, (O1, O2)> {
     return { input in
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
@@ -58,6 +91,27 @@ func +<Input, Output1, Output2>(a: @escaping Parser<Input, Output1>, b: @escapin
     }
 }
 
+func &<I, O>(a: @escaping Parser<I, O>, b: @escaping Parser<I, O>) -> Parser<I, O> {
+    return { input in
+        let output1 = try a(input)
+        let output2 = try b(input)
+        return Iterated(
+            value: output1.value,
+            position: output2.position
+        )
+    }
+}
+
+func |<I, O>(a: @escaping Parser<I, O>, b: @escaping Parser<I, O>) -> Parser<I, O> {
+    return { input in
+        do {
+            return try a(input)
+        } catch {
+            return try b(input)
+        }
+    }
+}
+
 func map<Input, Output1, Output2>(_ parser: @escaping Parser<Input, Output1>, _ fn: @escaping (Output1) throws -> Output2) -> Parser<Input, Output2> {
     return { input in
         let result = try parser(input)
@@ -65,6 +119,23 @@ func map<Input, Output1, Output2>(_ parser: @escaping Parser<Input, Output1>, _ 
             value: try fn(result.value),
             position: result.position
         )
+    }
+}
+
+func not(_ parser: @escaping Parser<String, String>) -> Parser<String, String> {
+    return { input in
+        do {
+            _ = try parser(input)
+        } catch {
+            guard input.position < input.value.count else {
+                throw "\(input.position) is out of string range"
+            }
+            return Iterated(
+                value: "\(input.value[input.position])",
+                position: input.position + 1
+            )
+        }
+        throw "matched"
     }
 }
 
@@ -97,5 +168,15 @@ func char(_ char: Character) -> Parser<String, String> {
             throw "\(c) is not \(char)"
         }
         return Iterated(value: "\(char)", position: input.position + 1)
+    }
+}
+
+func any() -> Parser<String, String> {
+    return { input in
+        guard input.position < input.value.count else {
+            throw "\(input.position) is out of string range"
+        }
+        let c = input.value[input.position]
+        return Iterated(value: "\(c)", position: input.position + 1)
     }
 }
