@@ -37,16 +37,6 @@ struct Iterated<T> {
     let position: Int
 }
 
-func ||<Input, Output>(a: @escaping Parser<Input, Output>, b: @escaping Parser<Input, Output>) -> Parser<Input, Output> {
-    return { input in
-        do {
-            return try a(input)
-        } catch {
-            return try b(input)
-        }
-    }
-}
-
 func +<I, O1, O2, O3, O4, O5>(a: @escaping Parser<I, (O1, O2, O3, O4)>, b: @escaping Parser<I, O5>) -> Parser<I, (O1, O2, O3, O4, O5)> {
     return { input in
         let output1 = try a(input)
@@ -112,6 +102,18 @@ func |<I, O>(a: @escaping Parser<I, O>, b: @escaping Parser<I, O>) -> Parser<I, 
     }
 }
 
+func many<I, O>(_ parser: @escaping Parser<I, O>) -> Parser<I, [O]> {
+    return { input in
+        var i = input
+        var arr = [O]()
+        while let result = try? parser(i) {
+            i = Iterated(value: input.value, position: result.position)
+            arr.append(result.value)
+        }
+        return Iterated(value: arr, position: i.position)
+    }
+}
+
 func map<Input, Output1, Output2>(_ parser: @escaping Parser<Input, Output1>, _ fn: @escaping (Output1) throws -> Output2) -> Parser<Input, Output2> {
     return { input in
         let result = try parser(input)
@@ -122,7 +124,7 @@ func map<Input, Output1, Output2>(_ parser: @escaping Parser<Input, Output1>, _ 
     }
 }
 
-func not(_ parser: @escaping Parser<String, String>) -> Parser<String, String> {
+prefix func !(_ parser: @escaping Parser<String, String>) -> Parser<String, String> {
     return { input in
         do {
             _ = try parser(input)
@@ -179,4 +181,8 @@ func any() -> Parser<String, String> {
         let c = input.value[input.position]
         return Iterated(value: "\(c)", position: input.position + 1)
     }
+}
+
+func join(_ parser: @escaping Parser<String, [String]>, separator: String = "") -> Parser<String, String> {
+    return map(parser, { $0.joined(separator: separator) })
 }
