@@ -1,27 +1,5 @@
 import Foundation
 
-// Parser を関数とした場合. Generics 周りでうまく行かなそうな雰囲気
-//
-//protocol Stream {
-//    associatedtype T
-//    func read() -> T
-//}
-//
-//
-//func ||<I, O>(a: @escaping Parser<I, O>, b: @escaping Parser<I, O>) -> Parser<I, O> {
-//    return {
-//        do {
-//            return try a($0)
-//        } catch {
-//            return try b($0)
-//        }
-//    }
-//}
-//
-//func `$`<I: Stream, O>(str: String) -> Parser<I, O> {
-//
-//}
-
 typealias Parser<I, O> = (Iterated<I>) throws -> Iterated<O>
 
 enum ParseError: Error {
@@ -35,6 +13,19 @@ extension String: LocalizedError {
 struct Iterated<T> {
     let value: T
     let position: Int
+    let logger: ((String) -> Void)?
+    
+    init(value: T, position: Int = 0, logger: ((String) -> Void)? = nil) {
+        self.value = value
+        self.position = position
+        self.logger = logger
+    }
+}
+
+extension Iterated {
+    func log(_ msg: String) {
+        logger?("\(msg) with input \(value) at position \(position)")
+    }
 }
 
 func +<I, O1, O2, O3, O4, O5>(a: @escaping Parser<I, (O1, O2, O3, O4)>, b: @escaping Parser<I, O5>) -> Parser<I, (O1, O2, O3, O4, O5)> {
@@ -65,6 +56,28 @@ func +<I, O1, O2, O3>(a: @escaping Parser<I, (O1, O2)>, b: @escaping Parser<I, O
         let output2 = try b(Iterated(value: input.value, position: output1.position))
         return Iterated(
             value: (output1.value.0, output1.value.1, output2.value),
+            position: output2.position
+        )
+    }
+}
+
+func +<I, O>(a: @escaping Parser<I, Void>, b: @escaping Parser<I, O>) -> Parser<I, O> {
+    return { input in
+        let output1 = try a(input)
+        let output2 = try b(Iterated(value: input.value, position: output1.position))
+        return Iterated(
+            value: output2.value,
+            position: output2.position
+        )
+    }
+}
+
+func +<I, O>(a: @escaping Parser<I, O>, b: @escaping Parser<I, Void>) -> Parser<I, O> {
+    return { input in
+        let output1 = try a(input)
+        let output2 = try b(Iterated(value: input.value, position: output1.position))
+        return Iterated(
+            value: output1.value,
             position: output2.position
         )
     }
@@ -124,6 +137,30 @@ func map<Input, Output1, Output2>(_ parser: @escaping Parser<Input, Output1>, _ 
     }
 }
 
+// doing nothing, but help compiler within some complex expression with binary operators
+func pass<I, O>(_ parser: @escaping Parser<I, O>) -> Parser<I, O> {
+   return parser
+}
+
+func optional<I, O>(_ parser: @escaping Parser<I, O>) -> Parser<I, O?> {
+   return { input in
+       do {
+           let result = try parser(input)
+           return Iterated(value: result.value, position: result.position)
+       } catch {
+           return Iterated(value: nil, position: input.position)
+       }
+   }
+}
+
+func ignore<I, O>(_ parser: @escaping Parser<I, O>) -> Parser<I, Void> {
+    return map(parser, { _ in })
+}
+
+extension StringProtocol {
+    subscript(offset: Int) -> Character { self[index(startIndex, offsetBy: offset)] }
+}
+
 prefix func !(_ parser: @escaping Parser<String, String>) -> Parser<String, String> {
     return { input in
         do {
@@ -139,10 +176,6 @@ prefix func !(_ parser: @escaping Parser<String, String>) -> Parser<String, Stri
         }
         throw "matched"
     }
-}
-
-extension StringProtocol {
-    subscript(offset: Int) -> Character { self[index(startIndex, offsetBy: offset)] }
 }
 
 func charRange(_ from: Unicode.Scalar, _ to: Unicode.Scalar) -> Parser<String, String> {
@@ -162,6 +195,7 @@ func charRange(_ from: Unicode.Scalar, _ to: Unicode.Scalar) -> Parser<String, S
 
 func char(_ char: Character) -> Parser<String, String> {
     return { input in
+        input.log("enter: \(#function) \(char)")
         guard input.position < input.value.count else {
             throw "\(input.position) is out of string range"
         }
