@@ -138,6 +138,9 @@ func many<I, O>(_ parser: @escaping Parser<I, O>) -> Parser<I, [O]> {
             i = Iterated(value: input.value, position: result.position)
             arr.append(result.value)
         }
+        if arr.isEmpty {
+            throw "many: not matched"
+        }
         return Iterated(value: arr, position: i.position)
     }
 }
@@ -145,6 +148,9 @@ func many<I, O>(_ parser: @escaping Parser<I, O>) -> Parser<I, [O]> {
 func map<Input, Output1, Output2>(_ parser: @escaping Parser<Input, Output1>, _ fn: @escaping (Output1) throws -> Output2) -> Parser<Input, Output2> {
     return { input in
         input.log("enter: \(#function)")
+        if (input.position == 10) {
+            print(input.value)
+        }
         let result = try parser(input)
         return Iterated(
             value: try fn(result.value),

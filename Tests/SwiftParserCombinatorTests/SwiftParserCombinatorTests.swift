@@ -94,13 +94,13 @@ final class SwiftParserCombinatorTests: XCTestCase {
             XCTAssertEqual(result.0, "foo")
             XCTAssertEqual(result.1, .string("hi"))
         }
-        
+
         do {
             let result = try keyValue(Iterated(value: "\"bar\": 3.141")).value
             XCTAssertEqual(result.0, "bar")
             XCTAssertEqual(result.1, .number(3.141))
         }
-        
+
         do {
             let input = Iterated(value: "{ \"name\": \"mokha\", \"age\": 10}")
             let result = try objectValue(input)
@@ -108,11 +108,22 @@ final class SwiftParserCombinatorTests: XCTestCase {
                                                   ("age", .number(10))]))
         }
         
-        // TODO: Test nested object
+        do {
+            let input = Iterated(value: "{ \"user\": { \"name\": \"mokha\", \"age\": 10} }")
+            let result = try objectValue(input)
+            XCTAssertEqual(result.value, .object([("user", .object([("name", .string("mokha")),
+                                                                    ("age", .number(10))]))]))
+        }
         
         let jsonParser: Parser<String, [(String, JSONValue)]> = objectParser + ignore(eof())
         
-        // TODO: Test jsonParser
+        do {
+            let input = Iterated(value: "{ \"user\": { \"name\": \"mokha\", \"age\": 10} }")
+            let result = try jsonParser(input)
+            XCTAssertEqual(result.value[0].0, "user")
+            XCTAssertEqual(result.value[0].1, .object([("name", .string("mokha")),
+                                                       ("age", .number(10))]))
+        }
     }
 
     static var allTests = [
