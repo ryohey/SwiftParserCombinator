@@ -9,10 +9,10 @@ extension String: LocalizedError {
 public var logger: ((String) -> Void)?
 
 public struct Iterated<T> {
-    let value: T
-    let position: Int
+    public let value: T
+    public let position: Int
     
-    init(value: T, position: Int = 0, logger: ((String) -> Void)? = nil) {
+    public init(value: T, position: Int = 0, logger: ((String) -> Void)? = nil) {
         self.value = value
         self.position = position
     }
