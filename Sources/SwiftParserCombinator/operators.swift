@@ -115,10 +115,8 @@ public func many<I, O>(_ parser: @escaping Parser<I, O>) -> Parser<I, [O]> {
 
 public func map<Input, Output1, Output2>(_ parser: @escaping Parser<Input, Output1>, _ fn: @escaping (Output1) throws -> Output2) -> Parser<Input, Output2> {
     return { input in
-        input.log("enter: \(#function)")
-        if (input.position == 10) {
-            print(input.value)
-        }
+        let context = input.context.append(call: .init(name: "map", value: ""))
+        let input2 = Iterated(value: input.value, position: input.position, context: context)
         let result = try parser(input)
         return Iterated(
             value: try fn(result.value),
@@ -134,22 +132,24 @@ public func pass<I, O>(_ parser: @escaping Parser<I, O>) -> Parser<I, O> {
 
 public func optional<I, O>(_ parser: @escaping Parser<I, O>) -> Parser<I, O?> {
     return { input in
-        input.log("enter: \(#function)")
+        let context = input.context.append(call: .init(name: "optional", value: ""))
+
         do {
-            let result = try parser(input)
-            return Iterated(value: result.value, position: result.position)
+            let input2 = Iterated(value: input.value, position: input.position, context: context)
+            let result = try parser(input2)
+            return Iterated(value: result.value, position: result.position, context: result.context)
         } catch {
-            input.log("catch error: \(#function) \(error.localizedDescription)")
-            return Iterated(value: nil, position: input.position)
+            return Iterated(value: nil, position: input.position, context: context)
         }
     }
 }
 
 public func ignore<I, O>(_ parser: @escaping Parser<I, O>) -> Parser<I, Void> {
     return { input in
-        input.log("enter: \(#function)")
-        let result = try parser(input)
-        return Iterated(value: (), position: result.position)
+        let context = input.context.append(call: .init(name: "ignore", value: ""))
+        let input2 = Iterated(value: input.value, position: input.position, context: context)
+        let result = try parser(input2)
+        return Iterated(value: (), position: result.position, context: result.context)
     }
 }
 
