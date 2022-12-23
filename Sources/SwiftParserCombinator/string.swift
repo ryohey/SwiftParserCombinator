@@ -5,7 +5,7 @@ extension StringProtocol {
 }
 
 public prefix func !(_ parser: Parser<String, String>) -> Parser<String, String> {
-    Parser(name: "not", description: parser.description) { input in
+    Parser(name: "not", description: "^(\(parser.description))") { input in
         do {
             _ = try parser(input)
         } catch {
