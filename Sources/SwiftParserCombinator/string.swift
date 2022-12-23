@@ -78,7 +78,7 @@ public func any() -> Parser<String, String> {
     }
 }
 
-public func join(_ parser: Parser<String, [String]>, separator: String = "") -> Parser<String, String> {
+public func join<Input>(_ parser: Parser<Input, [String]>, separator: String = "") -> Parser<Input, String> {
     return map(parser, { $0.joined(separator: separator) })
 }
 
@@ -92,5 +92,11 @@ public func eof() -> Parser<String, Void> {
             position: input.position,
             context: input.context
         )
+    }
+}
+
+public extension Parser {
+    func joined(separator: String = "") -> Parser<Input, String> where Output == [String] {
+        join(self)
     }
 }
