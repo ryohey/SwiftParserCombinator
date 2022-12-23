@@ -99,7 +99,7 @@ public func |<I, O>(a: Parser<I, O>, b: Parser<I, O>) -> Parser<I, O> {
 }
 
 public func many<I, O>(_ parser: Parser<I, O>) -> Parser<I, [O]> {
-    Parser(name: "many") { input in
+    Parser(name: "many", description: parser.description) { input in
         var i = input
         var arr = [O]()
         while let result = try? parser(i) {
@@ -114,7 +114,7 @@ public func many<I, O>(_ parser: Parser<I, O>) -> Parser<I, [O]> {
 }
 
 public func map<Input, Output1, Output2>(_ parser: Parser<Input, Output1>, _ fn: @escaping (Output1) throws -> Output2) -> Parser<Input, Output2> {
-    Parser(name: "map") { input in
+    Parser(name: "map", description: parser.description) { input in
         let result = try parser(input)
         return Iterated(
             value: try fn(result.value),
@@ -123,7 +123,7 @@ public func map<Input, Output1, Output2>(_ parser: Parser<Input, Output1>, _ fn:
     }
 }
 func mapTo<Input, Output1, Output2>(_ parser: Parser<Input, Output1>, _ value: Output2) -> Parser<Input, Output2> {
-    Parser(name: "mapTo") { input in
+    Parser(name: "mapTo", description: parser.description) { input in
         let result = try parser(input)
         return Iterated(
             value: value,
@@ -138,7 +138,7 @@ public func pass<I, O>(_ parser: Parser<I, O>) -> Parser<I, O> {
 }
 
 public func optional<I, O>(_ parser: Parser<I, O>) -> Parser<I, O?> {
-    Parser(name: "optional") { input in
+    Parser(name: "optional", description: parser.description) { input in
         do {
             let result = try parser(input)
             return Iterated(value: result.value, position: result.position, context: result.context)
@@ -149,7 +149,7 @@ public func optional<I, O>(_ parser: Parser<I, O>) -> Parser<I, O?> {
 }
 
 public func ignore<I, O>(_ parser: Parser<I, O>) -> Parser<I, Void> {
-    Parser(name: "ignore") { input in
+    Parser(name: "ignore", description: parser.description) { input in
         let result = try parser(input)
         return Iterated(value: (), position: result.position, context: result.context)
     }

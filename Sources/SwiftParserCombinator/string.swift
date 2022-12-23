@@ -2,15 +2,10 @@ import Foundation
 
 extension StringProtocol {
     subscript(offset: Int) -> Character { self[index(startIndex, offsetBy: offset)] }
-    
-    func split(position: Int) -> [String] {
-        let i = index(startIndex, offsetBy: position)
-        return [String(prefix(upTo: i)), String(suffix(from: i))]
-    }
 }
 
 public prefix func !(_ parser: Parser<String, String>) -> Parser<String, String> {
-    Parser(name: "not") { input in
+    Parser(name: "not", description: parser.description) { input in
         do {
             _ = try parser(input)
         } catch {

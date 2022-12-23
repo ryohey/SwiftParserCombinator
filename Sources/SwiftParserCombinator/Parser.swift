@@ -64,13 +64,3 @@ public struct Iterated<T> {
         self.context = context
     }
 }
-
-public extension Iterated {
-    func log(_ msg: String) {
-        if let str = value as? String {
-            logger?("\(msg) : \(str.split(position: position).joined(separator: "👉"))")
-        } else {
-            logger?("\(msg) with input \(value) at position \(position)")
-        }
-    }
-}

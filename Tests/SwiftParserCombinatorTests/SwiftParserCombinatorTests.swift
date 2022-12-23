@@ -12,6 +12,7 @@ final class SwiftParserCombinatorTests: XCTestCase {
         let parser = pass(prefix.asVoid() + char(" ").asVoid()) + anyStr
         let result = try parser(.init(value: "hello world"))
         XCTAssertEqual(result.value, "world")
+        XCTAssertEqual(result.position, 11)
     }
     
     func testHexColor() throws {
