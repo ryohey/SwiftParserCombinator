@@ -164,4 +164,8 @@ public extension Parser {
     func ignore() -> Parser<Input, Void> {
         SwiftParserCombinator.ignore(self)
     }
+
+    func named(_ name: String, description: String = "") -> Parser<Input, Output> {
+        Parser(name: name, description: description, fn: parse)
+    }
 }
