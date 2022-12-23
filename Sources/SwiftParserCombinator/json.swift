@@ -44,7 +44,7 @@ public func ==(lhs: JSONValue, rhs: JSONValue) -> Bool {
 
 let space = ignore(optional(many(char(" ") | char("\n"))))
 
-let string = join((char("\"") + many(any() & !char("\"")) + char("\"")).map { $0.1 })
+let string = join((char("\"") + many(anyChar() & !char("\"")) + char("\"")).map { $0.1 })
 let number = join(many(charRange("0", "9") | char("."))).map { Double($0)! }
 
 let stringValue = string.map(JSONValue.string)

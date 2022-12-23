@@ -64,7 +64,32 @@ public func char(_ char: Character) -> Parser<String, String> {
     }
 }
 
-public func any() -> Parser<String, String> {
+public func string(_ str: String) -> Parser<String, String> {
+    Parser(name: "string", description: str) { input in
+        guard input.position + str.count < input.value.count else {
+            throw ParseError(context: input.context, message: "\(input.position + str.count) is out of string range")
+        }
+        let substr = input.value.substring(input.position, input.position + str.count)
+        guard substr == str else {
+            throw ParseError(context: input.context, message: "\(substr) is not \(str)")
+        }
+        return Iterated(
+            value: str,
+            position: input.position + str.count,
+            context: input.context
+        )
+    }
+}
+
+private extension String {
+    func substring(_ start: Int, _ end: Int) -> String {
+        let startIndex = index(startIndex, offsetBy: start)
+        let endIndex = index(startIndex, offsetBy: end)
+        return String(self[startIndex..<endIndex])
+    }
+}
+
+public func anyChar() -> Parser<String, String> {
     Parser(name: "any", description: "*") { input in
         guard input.position < input.value.count else {
             throw ParseError(context: input.context, message: "\(input.position) is out of string range")

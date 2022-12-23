@@ -55,6 +55,17 @@ public func +<I, O>(a: Parser<I, O>, b: Parser<I, Void>) -> Parser<I, O> {
     }
 }
 
+public func +<I>(a: Parser<I, Void>, b: Parser<I, Void>) -> Parser<I, Void> {
+    Parser(name: "concat", description: "\(a.description)\(b.description)") { input in
+        let output1 = try a(input)
+        let output2 = try b(Iterated(value: input.value, position: output1.position))
+        return Iterated(
+            value: (),
+            position: output2.position
+        )
+    }
+}
+
 public func +<I, O1, O2>(a: Parser<I, O1>, b: Parser<I, O2>) -> Parser<I, (O1, O2)> {
     Parser(name: "concat", description: "\(a.description)\(b.description)") { input in
         let output1 = try a(input)

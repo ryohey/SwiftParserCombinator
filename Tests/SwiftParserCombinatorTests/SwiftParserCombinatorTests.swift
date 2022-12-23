@@ -5,6 +5,14 @@ final class SwiftParserCombinatorTests: XCTestCase {
     override func setUpWithError() throws {
         logger = { print($0) }
     }
+
+    func testOperators() throws {
+        let prefix = string("hello")
+        let anyStr = many(anyChar()).joined()
+        let parser = pass(prefix.ignore() + char(" ").ignore()) + anyStr
+        let result = try parser(.init(value: "hello world"))
+        XCTAssertEqual(result.value, "world")
+    }
     
     func testHexColor() throws {
         let hash = char("#")
@@ -89,8 +97,9 @@ final class SwiftParserCombinatorTests: XCTestCase {
     }
 
     static var allTests = [
+        ("testOperators", testOperators),
         ("testHexColor", testHexColor),
         ("testJSON", testJSON),
-        ("testError", testError)
+        ("testError", testError),
     ]
 }
