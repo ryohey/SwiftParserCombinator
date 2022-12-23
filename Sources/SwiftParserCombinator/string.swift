@@ -9,97 +9,88 @@ extension StringProtocol {
     }
 }
 
-public prefix func !(_ parser: @escaping Parser<String, String>) -> Parser<String, String> {
-    return { input in
-        let context = input.context.append(call: .init(name: "!", value: ""))
-
+public prefix func !(_ parser: Parser<String, String>) -> Parser<String, String> {
+    Parser(name: "not") { input in
         do {
             _ = try parser(input)
         } catch {
             guard input.position < input.value.count else {
-                throw ParseError(context: context, message: "\(input.position) is out of string range")
+                throw ParseError(context: input.context, message: "\(input.position) is out of string range")
             }
             return Iterated(
                 value: "\(input.value[input.position])",
                 position: input.position + 1,
-                context: context
+                context: input.context
             )
         }
-        throw ParseError(context: context, message: "matched")
+        throw ParseError(context: input.context, message: "matched")
     }
 }
 
 public func charRange(_ from: Unicode.Scalar, _ to: Unicode.Scalar) -> Parser<String, String> {
     let range = UInt32(from)...UInt32(to)
-    return { input in
-        let context = input.context.append(call: .init(name: "charRange", value: "\(range)"))
 
+    return Parser(name: "charRange") { input in
         guard input.position < input.value.count else {
-            throw ParseError(context: context, message: "\(input.position) is out of string range")
+            throw ParseError(context: input.context, message: "\(input.position) is out of string range")
         }
         let char = input.value[input.position]
         let c = char.unicodeScalars.first!
         guard range.contains(UInt32(c)) else {
-            throw ParseError(context: context, message: "\(c) is not contained in character range: \(range)")
+            throw ParseError(context: input.context, message: "\(c) is not contained in character range: \(range)")
         }
         return Iterated(
             value: "\(char)",
             position: input.position + 1,
-            context: context
+            context: input.context
         )
     }
 }
 
 public func char(_ char: Character) -> Parser<String, String> {
-    return { input in
-        let context = input.context.append(call: .init(name: "char", value: "\(char)"))
-
+    Parser(name: "char") { input in
         guard input.position < input.value.count else {
-            throw ParseError(context: context, message: "\(input.position) is out of string range")
+            throw ParseError(context: input.context, message: "\(input.position) is out of string range")
         }
         let c = input.value[input.position]
         guard c == char else {
-            throw ParseError(context: context, message: "\(c) is not \(char)")
+            throw ParseError(context: input.context, message: "\(c) is not \(char)")
         }
         return Iterated(
             value: "\(char)",
             position: input.position + 1,
-            context: context
+            context: input.context
         )
     }
 }
 
 public func any() -> Parser<String, String> {
-    return { input in
-        let context = input.context.append(call: .init(name: "any", value: ""))
-
+    Parser(name: "any") { input in
         guard input.position < input.value.count else {
-            throw ParseError(context: context, message: "\(input.position) is out of string range")
+            throw ParseError(context: input.context, message: "\(input.position) is out of string range")
         }
         let c = input.value[input.position]
         return Iterated(
             value: "\(c)",
             position: input.position + 1,
-            context: context
+            context: input.context
         )
     }
 }
 
-public func join(_ parser: @escaping Parser<String, [String]>, separator: String = "") -> Parser<String, String> {
+public func join(_ parser: Parser<String, [String]>, separator: String = "") -> Parser<String, String> {
     return map(parser, { $0.joined(separator: separator) })
 }
 
 public func eof() -> Parser<String, Void> {
-    return { input in
-        let context = input.context.append(call: .init(name: "eof", value: ""))
-
+    Parser(name: "eof") { input in
         guard input.position == input.value.count else {
-            throw ParseError(context: context, message: "\(input.position) is not eof")
+            throw ParseError(context: input.context, message: "\(input.position) is not eof")
         }
         return Iterated(
             value: (),
             position: input.position,
-            context: context
+            context: input.context
         )
     }
 }

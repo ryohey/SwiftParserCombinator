@@ -1,6 +1,28 @@
 import Foundation
 
-public typealias Parser<I, O> = (Iterated<I>) throws -> Iterated<O>
+public struct Parser<I, O> {
+    private let fn: (Iterated<I>) throws -> Iterated<O>
+    public let name: String
+    public let description: String
+
+    public init(name: String = "",
+                description: String = "",
+                fn: @escaping (Iterated<I>) throws -> Iterated<O>) {
+        self.name = name
+        self.description = description
+        self.fn = fn
+    }
+
+    public func parse(_ input: Iterated<I>) throws -> Iterated<O> {
+        let context = input.context.append(call: .init(name: name, value: ""))
+        let input2 = Iterated(value: input.value, position: input.position, context: context)
+        return try fn(input2)
+    }
+
+    public func callAsFunction(_ input: Iterated<I>) throws -> Iterated<O> {
+        try parse(input)
+    }
+}
 
 extension String: LocalizedError {
     public var errorDescription: String? { self }
@@ -13,8 +35,8 @@ public struct Context {
     public let logger: Logger
     public let callStack: [Call]
 
-    public init(logger: Logger, callStack: [Call]) {
-        self.logger = Logger
+    public init(logger: @escaping Logger, callStack: [Call]) {
+        self.logger = logger
         self.callStack = callStack
     }
 

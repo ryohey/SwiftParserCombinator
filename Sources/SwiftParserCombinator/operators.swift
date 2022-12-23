@@ -1,7 +1,7 @@
 import Foundation
 
-public func +<I, O1, O2, O3, O4, O5>(a: @escaping Parser<I, (O1, O2, O3, O4)>, b: @escaping Parser<I, O5>) -> Parser<I, (O1, O2, O3, O4, O5)> {
-    return { input in
+public func +<I, O1, O2, O3, O4, O5>(a: Parser<I, (O1, O2, O3, O4)>, b: Parser<I, O5>) -> Parser<I, (O1, O2, O3, O4, O5)> {
+    Parser(name: "concat") { input in
         input.log("enter: \(#function) ((O1, O2, O3, O4), O5)")
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
@@ -12,8 +12,8 @@ public func +<I, O1, O2, O3, O4, O5>(a: @escaping Parser<I, (O1, O2, O3, O4)>, b
     }
 }
 
-public func +<I, O1, O2, O3, O4>(a: @escaping Parser<I, (O1, O2, O3)>, b: @escaping Parser<I, O4>) -> Parser<I, (O1, O2, O3, O4)> {
-    return { input in
+public func +<I, O1, O2, O3, O4>(a: Parser<I, (O1, O2, O3)>, b: Parser<I, O4>) -> Parser<I, (O1, O2, O3, O4)> {
+    Parser(name: "concat") { input in
         input.log("enter: \(#function) ((O1, O2, O3), O4)")
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
@@ -24,8 +24,8 @@ public func +<I, O1, O2, O3, O4>(a: @escaping Parser<I, (O1, O2, O3)>, b: @escap
     }
 }
 
-public func +<I, O1, O2, O3>(a: @escaping Parser<I, (O1, O2)>, b: @escaping Parser<I, O3>) -> Parser<I, (O1, O2, O3)> {
-    return { input in
+public func +<I, O1, O2, O3>(a: Parser<I, (O1, O2)>, b: Parser<I, O3>) -> Parser<I, (O1, O2, O3)> {
+    Parser(name: "concat") { input in
         input.log("enter: \(#function) ((O1, O2), O3)")
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
@@ -36,8 +36,8 @@ public func +<I, O1, O2, O3>(a: @escaping Parser<I, (O1, O2)>, b: @escaping Pars
     }
 }
 
-public func +<I, O>(a: @escaping Parser<I, Void>, b: @escaping Parser<I, O>) -> Parser<I, O> {
-    return { input in
+public func +<I, O>(a: Parser<I, Void>, b: Parser<I, O>) -> Parser<I, O> {
+    Parser(name: "concat") { input in
         input.log("enter: \(#function) (Void, O)")
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
@@ -48,8 +48,8 @@ public func +<I, O>(a: @escaping Parser<I, Void>, b: @escaping Parser<I, O>) -> 
     }
 }
 
-public func +<I, O>(a: @escaping Parser<I, O>, b: @escaping Parser<I, Void>) -> Parser<I, O> {
-    return { input in
+public func +<I, O>(a: Parser<I, O>, b: Parser<I, Void>) -> Parser<I, O> {
+    Parser(name: "concat") { input in
         input.log("enter: \(#function) (O, Void)")
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
@@ -60,8 +60,8 @@ public func +<I, O>(a: @escaping Parser<I, O>, b: @escaping Parser<I, Void>) -> 
     }
 }
 
-public func +<I, O1, O2>(a: @escaping Parser<I, O1>, b: @escaping Parser<I, O2>) -> Parser<I, (O1, O2)> {
-    return { input in
+public func +<I, O1, O2>(a: Parser<I, O1>, b: Parser<I, O2>) -> Parser<I, (O1, O2)> {
+    Parser(name: "concat") { input in
         input.log("enter: \(#function) (O1, O2)")
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
@@ -72,8 +72,8 @@ public func +<I, O1, O2>(a: @escaping Parser<I, O1>, b: @escaping Parser<I, O2>)
     }
 }
 
-public func &<I, O>(a: @escaping Parser<I, O>, b: @escaping Parser<I, O>) -> Parser<I, O> {
-    return { input in
+public func &<I, O>(a: Parser<I, O>, b: Parser<I, O>) -> Parser<I, O> {
+    Parser(name: "and") { input in
         input.log("enter: \(#function)")
         let output1 = try a(input)
         let output2 = try b(input)
@@ -84,8 +84,8 @@ public func &<I, O>(a: @escaping Parser<I, O>, b: @escaping Parser<I, O>) -> Par
     }
 }
 
-public func |<I, O>(a: @escaping Parser<I, O>, b: @escaping Parser<I, O>) -> Parser<I, O> {
-    return { input in
+public func |<I, O>(a: Parser<I, O>, b: Parser<I, O>) -> Parser<I, O> {
+    Parser(name: "or") { input in
         input.log("enter: \(#function)")
         do {
             return try a(input)
@@ -96,8 +96,8 @@ public func |<I, O>(a: @escaping Parser<I, O>, b: @escaping Parser<I, O>) -> Par
     }
 }
 
-public func many<I, O>(_ parser: @escaping Parser<I, O>) -> Parser<I, [O]> {
-    return { input in
+public func many<I, O>(_ parser: Parser<I, O>) -> Parser<I, [O]> {
+    Parser(name: "many") { input in
         input.log("enter: \(#function)")
         var i = input
         var arr = [O]()
@@ -113,10 +113,8 @@ public func many<I, O>(_ parser: @escaping Parser<I, O>) -> Parser<I, [O]> {
     }
 }
 
-public func map<Input, Output1, Output2>(_ parser: @escaping Parser<Input, Output1>, _ fn: @escaping (Output1) throws -> Output2) -> Parser<Input, Output2> {
-    return { input in
-        let context = input.context.append(call: .init(name: "map", value: ""))
-        let input2 = Iterated(value: input.value, position: input.position, context: context)
+public func map<Input, Output1, Output2>(_ parser: Parser<Input, Output1>, _ fn: @escaping (Output1) throws -> Output2) -> Parser<Input, Output2> {
+    Parser(name: "map") { input in
         let result = try parser(input)
         return Iterated(
             value: try fn(result.value),
@@ -126,33 +124,28 @@ public func map<Input, Output1, Output2>(_ parser: @escaping Parser<Input, Outpu
 }
 
 // doing nothing, but help compiler within some complex expression with binary operators
-public func pass<I, O>(_ parser: @escaping Parser<I, O>) -> Parser<I, O> {
+public func pass<I, O>(_ parser: Parser<I, O>) -> Parser<I, O> {
     return parser
 }
 
-public func optional<I, O>(_ parser: @escaping Parser<I, O>) -> Parser<I, O?> {
-    return { input in
-        let context = input.context.append(call: .init(name: "optional", value: ""))
-
+public func optional<I, O>(_ parser: Parser<I, O>) -> Parser<I, O?> {
+    Parser(name: "optional") { input in
         do {
-            let input2 = Iterated(value: input.value, position: input.position, context: context)
-            let result = try parser(input2)
+            let result = try parser(input)
             return Iterated(value: result.value, position: result.position, context: result.context)
         } catch {
-            return Iterated(value: nil, position: input.position, context: context)
+            return Iterated(value: nil, position: input.position, context: input.context)
         }
     }
 }
 
-public func ignore<I, O>(_ parser: @escaping Parser<I, O>) -> Parser<I, Void> {
-    return { input in
-        let context = input.context.append(call: .init(name: "ignore", value: ""))
-        let input2 = Iterated(value: input.value, position: input.position, context: context)
-        let result = try parser(input2)
+public func ignore<I, O>(_ parser: Parser<I, O>) -> Parser<I, Void> {
+    Parser(name: "ignore") { input in
+        let result = try parser(input)
         return Iterated(value: (), position: result.position, context: result.context)
     }
 }
 
 public func lazy<I, O>(_ parser: @autoclosure @escaping () -> Parser<I, O>) -> Parser<I, O> {
-    return { try parser()($0) }
+    Parser(name: "lazy") { try parser()($0) }
 }
