@@ -172,7 +172,7 @@ public extension Parser {
         SwiftParserCombinator.optional(self)
     }
 
-    func ignore() -> Parser<Input, Void> {
+    func asVoid() -> Parser<Input, Void> {
         SwiftParserCombinator.ignore(self)
     }
 

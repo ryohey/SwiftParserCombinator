@@ -83,8 +83,8 @@ public func string(_ str: String) -> Parser<String, String> {
 
 private extension String {
     func substring(_ start: Int, _ end: Int) -> String {
-        let startIndex = index(startIndex, offsetBy: start)
-        let endIndex = index(startIndex, offsetBy: end)
+        let startIndex = index(self.startIndex, offsetBy: start)
+        let endIndex = index(self.startIndex, offsetBy: end)
         return String(self[startIndex..<endIndex])
     }
 }

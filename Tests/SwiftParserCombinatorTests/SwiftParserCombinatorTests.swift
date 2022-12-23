@@ -9,7 +9,7 @@ final class SwiftParserCombinatorTests: XCTestCase {
     func testOperators() throws {
         let prefix = string("hello")
         let anyStr = many(anyChar()).joined()
-        let parser = pass(prefix.ignore() + char(" ").ignore()) + anyStr
+        let parser = pass(prefix.asVoid() + char(" ").asVoid()) + anyStr
         let result = try parser(.init(value: "hello world"))
         XCTAssertEqual(result.value, "world")
     }
