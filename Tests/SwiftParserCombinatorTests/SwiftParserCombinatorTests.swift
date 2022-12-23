@@ -9,16 +9,16 @@ final class SwiftParserCombinatorTests: XCTestCase {
     func testHexColor() throws {
         let hash = char("#")
         let hex = charRange("0", "9") | charRange("a", "f")
-        let component = map(hex + hex, { (tuple: (String, String)) -> Int in
+        let component = (hex + hex).map { (tuple: (String, String)) -> Int in
             let str = tuple.0 + tuple.1
             var rgbValue: UInt64 = 0
             Scanner(string: str).scanHexInt64(&rgbValue)
             return Int(rgbValue)
-        })
+        }
         let r = component
         let g = component
         let b = component
-        let colorParser = map(hash + r + g + b, { (r: $1, g: $2, b: $3) })
+        let colorParser = (hash + r + g + b).map { (r: $1, g: $2, b: $3) }
         let input = Iterated(value: "#ff6400")
         let result = try colorParser(input)
         XCTAssertEqual(result.value.r, 255)
@@ -69,7 +69,28 @@ final class SwiftParserCombinatorTests: XCTestCase {
         }
     }
 
+    func testError() throws {
+        let input = Iterated(value: "z=0")
+        let number = charRange("0", "9")
+        let parser = pass((char("x") | char("y")) + char("=")) + number
+        do {
+            _ = try parser(input)
+        } catch {
+            XCTAssertEqual(error.localizedDescription, """
+            z is not y
+
+            [Call stack]
+            - concat() (x|y)=[0-9]
+            - concat() (x|y)=
+            - or() (x|y)
+            - char() y
+            """)
+        }
+    }
+
     static var allTests = [
         ("testHexColor", testHexColor),
+        ("testJSON", testJSON),
+        ("testError", testError)
     ]
 }

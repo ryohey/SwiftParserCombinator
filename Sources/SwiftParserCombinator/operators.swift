@@ -1,8 +1,7 @@
 import Foundation
 
 public func +<I, O1, O2, O3, O4, O5>(a: Parser<I, (O1, O2, O3, O4)>, b: Parser<I, O5>) -> Parser<I, (O1, O2, O3, O4, O5)> {
-    Parser(name: "concat") { input in
-        input.log("enter: \(#function) ((O1, O2, O3, O4), O5)")
+    Parser(name: "concat", description: "\(a.description)\(b.description)") { input in
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
         return Iterated(
@@ -13,8 +12,7 @@ public func +<I, O1, O2, O3, O4, O5>(a: Parser<I, (O1, O2, O3, O4)>, b: Parser<I
 }
 
 public func +<I, O1, O2, O3, O4>(a: Parser<I, (O1, O2, O3)>, b: Parser<I, O4>) -> Parser<I, (O1, O2, O3, O4)> {
-    Parser(name: "concat") { input in
-        input.log("enter: \(#function) ((O1, O2, O3), O4)")
+    Parser(name: "concat", description: "\(a.description)\(b.description)") { input in
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
         return Iterated(
@@ -25,8 +23,7 @@ public func +<I, O1, O2, O3, O4>(a: Parser<I, (O1, O2, O3)>, b: Parser<I, O4>) -
 }
 
 public func +<I, O1, O2, O3>(a: Parser<I, (O1, O2)>, b: Parser<I, O3>) -> Parser<I, (O1, O2, O3)> {
-    Parser(name: "concat") { input in
-        input.log("enter: \(#function) ((O1, O2), O3)")
+    Parser(name: "concat", description: "\(a.description)\(b.description)") { input in
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
         return Iterated(
@@ -37,8 +34,7 @@ public func +<I, O1, O2, O3>(a: Parser<I, (O1, O2)>, b: Parser<I, O3>) -> Parser
 }
 
 public func +<I, O>(a: Parser<I, Void>, b: Parser<I, O>) -> Parser<I, O> {
-    Parser(name: "concat") { input in
-        input.log("enter: \(#function) (Void, O)")
+    Parser(name: "concat", description: "\(a.description)\(b.description)") { input in
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
         return Iterated(
@@ -49,8 +45,7 @@ public func +<I, O>(a: Parser<I, Void>, b: Parser<I, O>) -> Parser<I, O> {
 }
 
 public func +<I, O>(a: Parser<I, O>, b: Parser<I, Void>) -> Parser<I, O> {
-    Parser(name: "concat") { input in
-        input.log("enter: \(#function) (O, Void)")
+    Parser(name: "concat", description: "\(a.description)\(b.description)") { input in
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
         return Iterated(
@@ -61,8 +56,7 @@ public func +<I, O>(a: Parser<I, O>, b: Parser<I, Void>) -> Parser<I, O> {
 }
 
 public func +<I, O1, O2>(a: Parser<I, O1>, b: Parser<I, O2>) -> Parser<I, (O1, O2)> {
-    Parser(name: "concat") { input in
-        input.log("enter: \(#function) (O1, O2)")
+    Parser(name: "concat", description: "\(a.description)\(b.description)") { input in
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
         return Iterated(
@@ -73,8 +67,7 @@ public func +<I, O1, O2>(a: Parser<I, O1>, b: Parser<I, O2>) -> Parser<I, (O1, O
 }
 
 public func &<I, O>(a: Parser<I, O>, b: Parser<I, O>) -> Parser<I, O> {
-    Parser(name: "and") { input in
-        input.log("enter: \(#function)")
+    Parser(name: "and", description: "(\(a.description)&\(b.description))") { input in
         let output1 = try a(input)
         let output2 = try b(input)
         return Iterated(
@@ -85,12 +78,10 @@ public func &<I, O>(a: Parser<I, O>, b: Parser<I, O>) -> Parser<I, O> {
 }
 
 public func |<I, O>(a: Parser<I, O>, b: Parser<I, O>) -> Parser<I, O> {
-    Parser(name: "or") { input in
-        input.log("enter: \(#function)")
+    Parser(name: "or", description: "(\(a.description)|\(b.description))") { input in
         do {
             return try a(input)
         } catch {
-            input.log("catch error: \(#function) \(error.localizedDescription)")
             return try b(input)
         }
     }
@@ -98,16 +89,14 @@ public func |<I, O>(a: Parser<I, O>, b: Parser<I, O>) -> Parser<I, O> {
 
 public func many<I, O>(_ parser: Parser<I, O>) -> Parser<I, [O]> {
     Parser(name: "many") { input in
-        input.log("enter: \(#function)")
         var i = input
         var arr = [O]()
         while let result = try? parser(i) {
-            input.log("many: success \(arr.count)")
             i = Iterated(value: input.value, position: result.position)
             arr.append(result.value)
         }
         if arr.isEmpty {
-            throw "many: not matched"
+            throw ParseError(context: input.context, message: "many: not matched")
         }
         return Iterated(value: arr, position: i.position)
     }
@@ -118,6 +107,15 @@ public func map<Input, Output1, Output2>(_ parser: Parser<Input, Output1>, _ fn:
         let result = try parser(input)
         return Iterated(
             value: try fn(result.value),
+            position: result.position
+        )
+    }
+}
+func mapTo<Input, Output1, Output2>(_ parser: Parser<Input, Output1>, _ value: Output2) -> Parser<Input, Output2> {
+    Parser(name: "mapTo") { input in
+        let result = try parser(input)
+        return Iterated(
+            value: value,
             position: result.position
         )
     }
@@ -148,4 +146,22 @@ public func ignore<I, O>(_ parser: Parser<I, O>) -> Parser<I, Void> {
 
 public func lazy<I, O>(_ parser: @autoclosure @escaping () -> Parser<I, O>) -> Parser<I, O> {
     Parser(name: "lazy") { try parser()($0) }
+}
+
+public extension Parser {
+    func map<Output2>(_ fn: @escaping (Output) throws -> Output2) -> Parser<Input, Output2> {
+        SwiftParserCombinator.map(self, fn)
+    }
+
+    func mapTo<Output2>(_ value: Output2) -> Parser<Input, Output2> {
+        SwiftParserCombinator.mapTo(self, value)
+    }
+
+    func optional() -> Parser<Input, Output?> {
+        SwiftParserCombinator.optional(self)
+    }
+
+    func ignore() -> Parser<Input, Void> {
+        SwiftParserCombinator.ignore(self)
+    }
 }

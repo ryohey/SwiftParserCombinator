@@ -30,7 +30,7 @@ public prefix func !(_ parser: Parser<String, String>) -> Parser<String, String>
 public func charRange(_ from: Unicode.Scalar, _ to: Unicode.Scalar) -> Parser<String, String> {
     let range = UInt32(from)...UInt32(to)
 
-    return Parser(name: "charRange") { input in
+    return Parser(name: "charRange", description: "[\(from)-\(to)]") { input in
         guard input.position < input.value.count else {
             throw ParseError(context: input.context, message: "\(input.position) is out of string range")
         }
@@ -48,7 +48,7 @@ public func charRange(_ from: Unicode.Scalar, _ to: Unicode.Scalar) -> Parser<St
 }
 
 public func char(_ char: Character) -> Parser<String, String> {
-    Parser(name: "char") { input in
+    Parser(name: "char", description: "\(char)") { input in
         guard input.position < input.value.count else {
             throw ParseError(context: input.context, message: "\(input.position) is out of string range")
         }
@@ -65,7 +65,7 @@ public func char(_ char: Character) -> Parser<String, String> {
 }
 
 public func any() -> Parser<String, String> {
-    Parser(name: "any") { input in
+    Parser(name: "any", description: "*") { input in
         guard input.position < input.value.count else {
             throw ParseError(context: input.context, message: "\(input.position) is out of string range")
         }
@@ -83,7 +83,7 @@ public func join(_ parser: Parser<String, [String]>, separator: String = "") -> 
 }
 
 public func eof() -> Parser<String, Void> {
-    Parser(name: "eof") { input in
+    Parser(name: "eof", description: "EOF") { input in
         guard input.position == input.value.count else {
             throw ParseError(context: input.context, message: "\(input.position) is not eof")
         }

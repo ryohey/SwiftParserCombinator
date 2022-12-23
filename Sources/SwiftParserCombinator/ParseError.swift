@@ -13,12 +13,12 @@ public struct ParseError: LocalizedError {
 
     public var errorDescription: String? {
         let stack = context.callStack
-            .map { "- \($0.name)" }
+            .map { "- \($0.name)() \($0.value)" }
             .joined(separator: "\n")
 
         return """
             \(message)
-            
+
             [Call stack]
             \(stack)
             """
