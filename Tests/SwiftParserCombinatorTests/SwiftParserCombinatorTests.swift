@@ -90,8 +90,8 @@ final class SwiftParserCombinatorTests: XCTestCase {
             z is not y
 
             [Call stack]
-            - concat() (x|y)=[0-9]
-            - concat() (x|y)=
+            - +() (x|y)=[0-9]
+            - +() (x|y)=
             - or() (x|y)
             - char() y
             """)

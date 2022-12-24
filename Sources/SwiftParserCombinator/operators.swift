@@ -1,7 +1,43 @@
 import Foundation
 
+public func concat<I, O1, O2>(p1: Parser<I, O1>, p2: Parser<I, O2>) -> Parser<I, (O1, O2)> {
+    Parser(name: "concat", description: "\(p1.description)\(p2.description)") { input in
+        let output1 = try p1(input)
+        let output2 = try p2(Iterated(value: input.value, position: output1.position))
+        return Iterated(
+            value: (output1.value, output2.value),
+            position: output2.position
+        )
+    }
+}
+
+public func concat<I, O1, O2, O3>(p1: Parser<I, O1>, p2: Parser<I, O2>, p3: Parser<I, O3>) -> Parser<I, (O1, O2, O3)> {
+    Parser(name: "concat", description: "\(p1.description)\(p2.description)\(p3.description)") { input in
+        let output1 = try p1(input)
+        let output2 = try p2(Iterated(value: input.value, position: output1.position))
+        let output3 = try p3(Iterated(value: input.value, position: output2.position))
+        return Iterated(
+            value: (output1.value, output2.value, output3.value),
+            position: output3.position
+        )
+    }
+}
+
+public func concat<I, O1, O2, O3, O4>(p1: Parser<I, O1>, p2: Parser<I, O2>, p3: Parser<I, O3>, p4: Parser<I, O4>) -> Parser<I, (O1, O2, O3, O4)> {
+    Parser(name: "concat", description: "\(p1.description)\(p2.description)\(p3.description)") { input in
+        let output1 = try p1(input)
+        let output2 = try p2(Iterated(value: input.value, position: output1.position))
+        let output3 = try p3(Iterated(value: input.value, position: output2.position))
+        let output4 = try p4(Iterated(value: input.value, position: output3.position))
+        return Iterated(
+            value: (output1.value, output2.value, output3.value, output4.value),
+            position: output4.position
+        )
+    }
+}
+
 public func +<I, O1, O2, O3, O4, O5>(a: Parser<I, (O1, O2, O3, O4)>, b: Parser<I, O5>) -> Parser<I, (O1, O2, O3, O4, O5)> {
-    Parser(name: "concat", description: "\(a.description)\(b.description)") { input in
+    Parser(name: "+", description: "\(a.description)\(b.description)") { input in
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
         return Iterated(
@@ -12,7 +48,7 @@ public func +<I, O1, O2, O3, O4, O5>(a: Parser<I, (O1, O2, O3, O4)>, b: Parser<I
 }
 
 public func +<I, O1, O2, O3, O4>(a: Parser<I, (O1, O2, O3)>, b: Parser<I, O4>) -> Parser<I, (O1, O2, O3, O4)> {
-    Parser(name: "concat", description: "\(a.description)\(b.description)") { input in
+    Parser(name: "+", description: "\(a.description)\(b.description)") { input in
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
         return Iterated(
@@ -23,7 +59,7 @@ public func +<I, O1, O2, O3, O4>(a: Parser<I, (O1, O2, O3)>, b: Parser<I, O4>) -
 }
 
 public func +<I, O1, O2, O3>(a: Parser<I, (O1, O2)>, b: Parser<I, O3>) -> Parser<I, (O1, O2, O3)> {
-    Parser(name: "concat", description: "\(a.description)\(b.description)") { input in
+    Parser(name: "+", description: "\(a.description)\(b.description)") { input in
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
         return Iterated(
@@ -34,7 +70,7 @@ public func +<I, O1, O2, O3>(a: Parser<I, (O1, O2)>, b: Parser<I, O3>) -> Parser
 }
 
 public func +<I, O>(a: Parser<I, Void>, b: Parser<I, O>) -> Parser<I, O> {
-    Parser(name: "concat", description: "\(a.description)\(b.description)") { input in
+    Parser(name: "+", description: "\(a.description)\(b.description)") { input in
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
         return Iterated(
@@ -45,7 +81,7 @@ public func +<I, O>(a: Parser<I, Void>, b: Parser<I, O>) -> Parser<I, O> {
 }
 
 public func +<I, O>(a: Parser<I, O>, b: Parser<I, Void>) -> Parser<I, O> {
-    Parser(name: "concat", description: "\(a.description)\(b.description)") { input in
+    Parser(name: "+", description: "\(a.description)\(b.description)") { input in
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
         return Iterated(
@@ -56,7 +92,7 @@ public func +<I, O>(a: Parser<I, O>, b: Parser<I, Void>) -> Parser<I, O> {
 }
 
 public func +<I>(a: Parser<I, Void>, b: Parser<I, Void>) -> Parser<I, Void> {
-    Parser(name: "concat", description: "\(a.description)\(b.description)") { input in
+    Parser(name: "+", description: "\(a.description)\(b.description)") { input in
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
         return Iterated(
@@ -67,7 +103,7 @@ public func +<I>(a: Parser<I, Void>, b: Parser<I, Void>) -> Parser<I, Void> {
 }
 
 public func +<I, O1, O2>(a: Parser<I, O1>, b: Parser<I, O2>) -> Parser<I, (O1, O2)> {
-    Parser(name: "concat", description: "\(a.description)\(b.description)") { input in
+    Parser(name: "+", description: "\(a.description)\(b.description)") { input in
         let output1 = try a(input)
         let output2 = try b(Iterated(value: input.value, position: output1.position))
         return Iterated(
@@ -108,6 +144,18 @@ public func many<I, O>(_ parser: Parser<I, O>) -> Parser<I, [O]> {
         }
         if arr.isEmpty {
             throw ParseError(context: input.context, message: "many: not matched")
+        }
+        return Iterated(value: arr, position: i.position)
+    }
+}
+
+public func many0<I, O>(_ parser: Parser<I, O>) -> Parser<I, [O]> {
+    Parser(name: "many0", description: parser.description) { input in
+        var i = input
+        var arr = [O]()
+        while let result = try? parser(i) {
+            i = Iterated(value: input.value, position: result.position)
+            arr.append(result.value)
         }
         return Iterated(value: arr, position: i.position)
     }
