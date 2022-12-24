@@ -8,11 +8,12 @@ final class SwiftParserCombinatorTests: XCTestCase {
 
     func testOperators() throws {
         let prefix = string("hello")
-        let anyStr = many(anyChar()).joined()
-        let parser = pass(prefix.asVoid() + char(" ").asVoid()) + anyStr
-        let result = try parser(.init(value: "hello world"))
+        let anyStr = many(anyChar() & !char("!")).joined()
+        let suffix = string("!")
+        let parser = pass(prefix.asVoid() + char(" ").asVoid()) + pass(anyStr + suffix.asVoid())
+        let result = try parser(.init(value: "hello world!"))
         XCTAssertEqual(result.value, "world")
-        XCTAssertEqual(result.position, 11)
+        XCTAssertEqual(result.position, 12)
     }
     
     func testHexColor() throws {

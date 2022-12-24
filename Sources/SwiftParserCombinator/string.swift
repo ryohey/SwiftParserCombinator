@@ -61,7 +61,7 @@ public func char(_ char: Character) -> Parser<String, String> {
 
 public func string(_ str: String) -> Parser<String, String> {
     Parser(name: "string", description: str) { input in
-        guard input.position + str.count < input.value.count else {
+        guard input.position + str.count <= input.value.count else {
             throw ParseError(context: input.context, message: "\(input.position + str.count) is out of string range")
         }
         let substr = input.value.substring(input.position, input.position + str.count)
