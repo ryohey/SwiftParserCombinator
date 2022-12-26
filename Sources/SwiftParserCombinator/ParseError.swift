@@ -8,8 +8,13 @@
 import Foundation
 
 public struct ParseError: LocalizedError {
-    let context: Context
-    let message: String
+    public let context: Context
+    public let message: String
+
+    public init(context: Context, message: String) {
+        self.context = context
+        self.message = message
+    }
 
     public var errorDescription: String? {
         let stack = context.callStack

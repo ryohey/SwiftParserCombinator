@@ -170,6 +170,7 @@ public func map<Input, Output1, Output2>(_ parser: Parser<Input, Output1>, _ fn:
         )
     }
 }
+
 func mapTo<Input, Output1, Output2>(_ parser: Parser<Input, Output1>, _ value: Output2) -> Parser<Input, Output2> {
     Parser(name: "mapTo", description: parser.description) { input in
         let result = try parser(input)
