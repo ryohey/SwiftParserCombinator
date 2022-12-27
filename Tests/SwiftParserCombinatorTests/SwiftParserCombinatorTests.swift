@@ -7,10 +7,10 @@ final class SwiftParserCombinatorTests: XCTestCase {
     }
 
     func testOperators() throws {
-        let prefix = string("hello")
+        let start = string("hello")
         let anyStr = many(anyChar() & !char("!")).joined()
         let suffix = string("!")
-        let parser = pass(prefix.asVoid() + char(" ").asVoid()) + pass(anyStr + suffix.asVoid())
+        let parser = prefix(start + char(" "), anyStr).suffix(suffix)
         let result = try parser(.init(value: "hello world!"))
         XCTAssertEqual(result.value, "world")
         XCTAssertEqual(result.position, 12)

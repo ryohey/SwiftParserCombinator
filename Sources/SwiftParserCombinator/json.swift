@@ -42,7 +42,7 @@ public func ==(lhs: JSONValue, rhs: JSONValue) -> Bool {
     }
 }
 
-let space = ignore(optional(many(char(" ") | char("\n"))))
+let space = (optional(many(char(" ") | char("\n")))).asVoid()
 
 let string = join((char("\"") + many(anyChar() & !char("\"")) + char("\"")).map { $0.1 })
 let number = join(many(charRange("0", "9") | char("."))).map { Double($0)! }
@@ -50,16 +50,16 @@ let number = join(many(charRange("0", "9") | char("."))).map { Double($0)! }
 let stringValue = string.map(JSONValue.string)
 let numberValue = number.map(JSONValue.number)
 
-let objectParser = lazy(ignore(char("{") + space) + pass(manyKeyValue | singleKeyValue) + ignore(space + char("}")))
+let objectParser = lazy(prefix(char("{") + space, pass(manyKeyValue | singleKeyValue)).suffix(space + char("}")))
 let objectValue = objectParser.map(JSONValue.object)
 
 let value = stringValue | numberValue | objectValue
 
-let separator = ignore(space + pass(char(":") + space))
-let keyValue = (string + separator + value).map { ($0, $1) }
+let separator = (space + pass(char(":") + space)).asVoid()
+let keyValue = (string + separator + value).map { ($0, $2) }
 
 let singleKeyValue: Parser<String, [(String, JSONValue)]> = keyValue.map { [$0] }
-let lineSeparator = ignore(space + pass(char(",") + space))
-let manyKeyValue: Parser<String, [(String, JSONValue)]> = (many(keyValue + lineSeparator) + keyValue).map { $0 + [$1] }
+let lineSeparator = (pass(space + char(",")) + space).asVoid()
+let manyKeyValue: Parser<String, [(String, JSONValue)]> = (many(keyValue.suffix(lineSeparator)) + keyValue).map { $0 + [$1] }
 
-public let jsonParser: Parser<String, [(String, JSONValue)]> = objectParser + ignore(eof())
+public let jsonParser: Parser<String, [(String, JSONValue)]> = objectParser .suffix(eof())

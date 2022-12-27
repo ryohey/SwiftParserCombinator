@@ -69,39 +69,6 @@ public func +<I, O1, O2, O3>(a: Parser<I, (O1, O2)>, b: Parser<I, O3>) -> Parser
     }
 }
 
-public func +<I, O>(a: Parser<I, Void>, b: Parser<I, O>) -> Parser<I, O> {
-    Parser(name: "+", description: "\(a.description)\(b.description)") { input in
-        let output1 = try a(input)
-        let output2 = try b(Iterated(value: input.value, position: output1.position))
-        return Iterated(
-            value: output2.value,
-            position: output2.position
-        )
-    }
-}
-
-public func +<I, O>(a: Parser<I, O>, b: Parser<I, Void>) -> Parser<I, O> {
-    Parser(name: "+", description: "\(a.description)\(b.description)") { input in
-        let output1 = try a(input)
-        let output2 = try b(Iterated(value: input.value, position: output1.position))
-        return Iterated(
-            value: output1.value,
-            position: output2.position
-        )
-    }
-}
-
-public func +<I>(a: Parser<I, Void>, b: Parser<I, Void>) -> Parser<I, Void> {
-    Parser(name: "+", description: "\(a.description)\(b.description)") { input in
-        let output1 = try a(input)
-        let output2 = try b(Iterated(value: input.value, position: output1.position))
-        return Iterated(
-            value: (),
-            position: output2.position
-        )
-    }
-}
-
 public func +<I, O1, O2>(a: Parser<I, O1>, b: Parser<I, O2>) -> Parser<I, (O1, O2)> {
     Parser(name: "+", description: "\(a.description)\(b.description)") { input in
         let output1 = try a(input)
@@ -171,7 +138,7 @@ public func map<Input, Output1, Output2>(_ parser: Parser<Input, Output1>, _ fn:
     }
 }
 
-func mapTo<Input, Output1, Output2>(_ parser: Parser<Input, Output1>, _ value: Output2) -> Parser<Input, Output2> {
+public func mapTo<Input, Output1, Output2>(_ parser: Parser<Input, Output1>, _ value: Output2) -> Parser<Input, Output2> {
     Parser(name: "mapTo", description: parser.description) { input in
         let result = try parser(input)
         return Iterated(
@@ -180,6 +147,19 @@ func mapTo<Input, Output1, Output2>(_ parser: Parser<Input, Output1>, _ value: O
         )
     }
 }
+
+public func prefix<I, O1, O2>(_ start: Parser<I, O1>, _ parser: Parser<I, O2>) -> Parser<I, O2> {
+    (start + parser).map { $0.1 }
+}
+
+public func suffix<I, O1, O2>(_ parser: Parser<I, O1>, _ end: Parser<I, O2>) -> Parser<I, O1> {
+    (parser + end).map { $0.0 }
+}
+
+public func delimited<I, O1, O2, O3>(_ start: Parser<I, O1>, _ parser: Parser<I, O2>, _ end: Parser<I, O3>) -> Parser<I, O2> {
+    (start + parser + end).map { $0.1 }
+}
+
 
 // doing nothing, but help compiler within some complex expression with binary operators
 public func pass<I, O>(_ parser: Parser<I, O>) -> Parser<I, O> {
@@ -194,13 +174,6 @@ public func optional<I, O>(_ parser: Parser<I, O>) -> Parser<I, O?> {
         } catch {
             return Iterated(value: nil, position: input.position, context: input.context)
         }
-    }
-}
-
-public func ignore<I, O>(_ parser: Parser<I, O>) -> Parser<I, Void> {
-    Parser(name: "ignore", description: parser.description) { input in
-        let result = try parser(input)
-        return Iterated(value: (), position: result.position, context: result.context)
     }
 }
 
@@ -222,10 +195,18 @@ public extension Parser {
     }
 
     func asVoid() -> Parser<Input, Void> {
-        SwiftParserCombinator.ignore(self)
+        mapTo(())
     }
 
     func named(_ name: String, description: String = "") -> Parser<Input, Output> {
         Parser(name: name, description: description, fn: parse)
+    }
+
+    func surrounded<T>(by parser: Parser<Input, T>) -> Parser<Input, Output> {
+        (parser + self + parser).map { $0.1 }
+    }
+
+    func suffix<T>(_ end: Parser<Input, T>) -> Parser<Input, Output> {
+        SwiftParserCombinator.suffix(self, end)
     }
 }
