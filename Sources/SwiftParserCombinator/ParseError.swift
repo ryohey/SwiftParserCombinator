@@ -8,24 +8,13 @@
 import Foundation
 
 public struct ParseError: LocalizedError {
-    public let context: Context
     public let message: String
-
-    public init(context: Context, message: String) {
-        self.context = context
+    
+    public init(message: String) {
         self.message = message
     }
 
     public var errorDescription: String? {
-        let stack = context.callStack
-            .map { "- \($0.name)() \($0.value)" }
-            .joined(separator: "\n")
-
-        return """
-            \(message)
-
-            [Call stack]
-            \(stack)
-            """
+        message
     }
 }

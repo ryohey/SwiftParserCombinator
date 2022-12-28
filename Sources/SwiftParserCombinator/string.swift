@@ -10,7 +10,7 @@ public prefix func !(_ parser: Parser<String, String>) -> Parser<String, String>
             _ = try parser(input)
         } catch {
             guard input.position < input.value.count else {
-                throw ParseError(context: input.context, message: "\(input.position) is out of string range")
+                throw ParseError(message: "\(input.position) is out of string range")
             }
             return Iterated(
                 value: "\(input.value[input.position])",
@@ -18,7 +18,7 @@ public prefix func !(_ parser: Parser<String, String>) -> Parser<String, String>
                 context: input.context
             )
         }
-        throw ParseError(context: input.context, message: "matched")
+        throw ParseError(message: "matched")
     }
 }
 
@@ -27,12 +27,12 @@ public func charRange(_ from: Unicode.Scalar, _ to: Unicode.Scalar) -> Parser<St
 
     return Parser(name: "charRange", description: "[\(from)-\(to)]") { input in
         guard input.position < input.value.count else {
-            throw ParseError(context: input.context, message: "\(input.position) is out of string range")
+            throw ParseError(message: "\(input.position) is out of string range")
         }
         let char = input.value[input.position]
         let c = char.unicodeScalars.first!
         guard range.contains(UInt32(c)) else {
-            throw ParseError(context: input.context, message: "\(c) is not contained in character range: \(range)")
+            throw ParseError(message: "\(c) is not contained in character range: \(range)")
         }
         return Iterated(
             value: "\(char)",
@@ -45,11 +45,11 @@ public func charRange(_ from: Unicode.Scalar, _ to: Unicode.Scalar) -> Parser<St
 public func char(_ char: Character) -> Parser<String, String> {
     Parser(name: "char", description: "\(char)") { input in
         guard input.position < input.value.count else {
-            throw ParseError(context: input.context, message: "\(input.position) is out of string range")
+            throw ParseError(message: "\(input.position) is out of string range")
         }
         let c = input.value[input.position]
         guard c == char else {
-            throw ParseError(context: input.context, message: "\(c) is not \(char)")
+            throw ParseError(message: "\(c) is not \(char)")
         }
         return Iterated(
             value: "\(char)",
@@ -62,11 +62,11 @@ public func char(_ char: Character) -> Parser<String, String> {
 public func string(_ str: String) -> Parser<String, String> {
     Parser(name: "string", description: str) { input in
         guard input.position + str.count <= input.value.count else {
-            throw ParseError(context: input.context, message: "\(input.position + str.count) is out of string range")
+            throw ParseError(message: "\(input.position + str.count) is out of string range")
         }
         let substr = input.value.substring(input.position, input.position + str.count)
         guard substr == str else {
-            throw ParseError(context: input.context, message: "\(substr) is not \(str)")
+            throw ParseError(message: "\(substr) is not \(str)")
         }
         return Iterated(
             value: str,
@@ -87,7 +87,7 @@ private extension String {
 public func anyChar() -> Parser<String, String> {
     Parser(name: "any", description: "*") { input in
         guard input.position < input.value.count else {
-            throw ParseError(context: input.context, message: "\(input.position) is out of string range")
+            throw ParseError(message: "\(input.position) is out of string range")
         }
         let c = input.value[input.position]
         return Iterated(
@@ -105,7 +105,7 @@ public func join<Input>(_ parser: Parser<Input, [String]>, separator: String = "
 public func eof() -> Parser<String, Void> {
     Parser(name: "eof", description: "EOF") { input in
         guard input.position == input.value.count else {
-            throw ParseError(context: input.context, message: "\(input.position) is not eof")
+            throw ParseError(message: "\(input.position) is not eof")
         }
         return Iterated(
             value: (),

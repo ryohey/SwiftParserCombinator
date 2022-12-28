@@ -110,7 +110,7 @@ public func many<I, O>(_ parser: Parser<I, O>) -> Parser<I, [O]> {
             arr.append(result.value)
         }
         if arr.isEmpty {
-            throw ParseError(context: input.context, message: "many: not matched")
+            throw ParseError(message: "many: not matched")
         }
         return Iterated(value: arr, position: i.position)
     }

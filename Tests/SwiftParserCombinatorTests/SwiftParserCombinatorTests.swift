@@ -2,16 +2,14 @@ import XCTest
 @testable import SwiftParserCombinator
 
 final class SwiftParserCombinatorTests: XCTestCase {
-    override func setUpWithError() throws {
-        logger = { print($0) }
-    }
+    let logger = { print($0) }
 
     func testOperators() throws {
         let start = string("hello")
         let anyStr = many(anyChar() & !char("!")).joined()
         let suffix = string("!")
         let parser = prefix(start + char(" "), anyStr).suffix(suffix)
-        let result = try parser(.init(value: "hello world!"))
+        let result = try parser(.init(value: "hello world!", context: Context(logger: logger)))
         XCTAssertEqual(result.value, "world")
         XCTAssertEqual(result.position, 12)
     }
@@ -79,29 +77,19 @@ final class SwiftParserCombinatorTests: XCTestCase {
         }
     }
 
-    func testError() throws {
-        let input = Iterated(value: "z=0")
+    func testLogger() throws {
+        var log = ""
+        let input = Iterated(value: "z=0", context: .init(logger: { log += $0 + "\n" }))
         let number = charRange("0", "9")
         let parser = pass((char("x") | char("y")) + char("=")) + number
-        do {
-            _ = try parser(input)
-        } catch {
-            XCTAssertEqual(error.localizedDescription, """
-            z is not y
-
-            [Call stack]
-            - +() (x|y)=[0-9]
-            - +() (x|y)=
-            - or() (x|y)
-            - char() y
-            """)
-        }
+        _ = try? parser(input)
+        XCTAssert(!log.isEmpty)
     }
 
     static var allTests = [
         ("testOperators", testOperators),
         ("testHexColor", testHexColor),
         ("testJSON", testJSON),
-        ("testError", testError),
+        ("testLogger", testLogger),
     ]
 }
