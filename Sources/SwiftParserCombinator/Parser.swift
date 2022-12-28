@@ -14,16 +14,17 @@ public struct Parser<Input, Output> {
     }
 
     public func parse(_ input: Iterated<Input>) throws -> Iterated<Output> {
-        input.context.logger("Enter [\(name)] \(description)")
+        input.context.logger("Enter: [\(name)] \(description)")
         let context = input.context.push(call: .init(name: name, value: description))
         let input2 = Iterated(value: input.value, position: input.position, context: context)
         do {
             let result = try fn(input2)
-            input.context.logger("Success")
+            input.context.logger("Success: [\(name)] \(description)")
             return Iterated(value: result.value, position: result.position, context: result.context.pop())
         } catch {
             input.context.logger("""
-                Fail: \(error.localizedDescription)
+                Fail: [\(name)] \(description)
+                \(error.localizedDescription)
 
                 [Call stack]
                 \(input.context.stackTrace)
