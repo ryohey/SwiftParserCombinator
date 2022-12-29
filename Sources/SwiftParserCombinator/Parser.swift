@@ -14,21 +14,15 @@ public struct Parser<Input, Output> {
     }
 
     public func parse(_ input: Iterated<Input>) throws -> Iterated<Output> {
-        input.context.logger("Enter: [\(name)] \(description)")
+        input.context.logger(.init(status: .enter, parser: self, input: input))
         let context = input.context.push(call: .init(name: name, value: description))
         let input2 = Iterated(value: input.value, position: input.position, context: context)
         do {
             let result = try fn(input2)
-            input.context.logger("Success: [\(name)] \(description)")
+            input.context.logger(.init(status: .success, parser: self, input: input))
             return Iterated(value: result.value, position: result.position, context: result.context.pop())
         } catch {
-            input.context.logger("""
-                Fail: [\(name)] \(description)
-                \(error.localizedDescription)
-
-                [Call stack]
-                \(input.context.stackTrace)
-                """)
+            input.context.logger(.init(status: .failure, parser: self, input: input))
             throw error
         }
     }
@@ -42,7 +36,29 @@ extension String: LocalizedError {
     public var errorDescription: String? { self }
 }
 
-public typealias Logger = (String) -> Void
+public typealias Logger = (Log) -> Void
+
+public struct Log {
+    public let status: Status
+    public let parserName: String
+    public let parserDescription: String
+    public let position: Int
+    public let context: Context
+
+    init<Input, Output>(status: Status, parser: Parser<Input, Output>, input: Iterated<Input>) {
+        self.status = status
+        self.parserName = parser.name
+        self.parserDescription = parser.description
+        self.position = input.position
+        self.context = input.context
+    }
+
+    public enum Status {
+        case enter
+        case success
+        case failure
+    }
+}
 
 public struct Context {
     public let logger: Logger

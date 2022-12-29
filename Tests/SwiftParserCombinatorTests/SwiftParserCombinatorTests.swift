@@ -77,19 +77,9 @@ final class SwiftParserCombinatorTests: XCTestCase {
         }
     }
 
-    func testLogger() throws {
-        var log = ""
-        let input = Iterated(value: "z=0", context: .init(logger: { log += $0 + "\n" }))
-        let number = charRange("0", "9")
-        let parser = pass((char("x") | char("y")) + char("=")) + number
-        _ = try? parser(input)
-        XCTAssert(!log.isEmpty)
-    }
-
     static var allTests = [
         ("testOperators", testOperators),
         ("testHexColor", testHexColor),
         ("testJSON", testJSON),
-        ("testLogger", testLogger),
     ]
 }
