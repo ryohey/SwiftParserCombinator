@@ -1,7 +1,7 @@
 import Foundation
 
-public func concat<I, O1, O2>(p1: Parser<I, O1>, p2: Parser<I, O2>) -> Parser<I, (O1, O2)> {
-    Parser(name: "concat", description: "\(p1.description)\(p2.description)") { input in
+public func seq<I, O1, O2>(p1: Parser<I, O1>, p2: Parser<I, O2>) -> Parser<I, (O1, O2)> {
+    Parser(name: "seq", description: "\(p1.description)\(p2.description)") { input in
         let output1 = try p1(input)
         let output2 = try p2(Iterated(value: input.value, position: output1.position, context: output1.context))
         return Iterated(
@@ -12,8 +12,8 @@ public func concat<I, O1, O2>(p1: Parser<I, O1>, p2: Parser<I, O2>) -> Parser<I,
     }
 }
 
-public func concat<I, O1, O2, O3>(p1: Parser<I, O1>, p2: Parser<I, O2>, p3: Parser<I, O3>) -> Parser<I, (O1, O2, O3)> {
-    Parser(name: "concat", description: "\(p1.description)\(p2.description)\(p3.description)") { input in
+public func seq<I, O1, O2, O3>(p1: Parser<I, O1>, p2: Parser<I, O2>, p3: Parser<I, O3>) -> Parser<I, (O1, O2, O3)> {
+    Parser(name: "seq", description: "\(p1.description)\(p2.description)\(p3.description)") { input in
         let output1 = try p1(input)
         let output2 = try p2(Iterated(value: input.value, position: output1.position, context: output1.context))
         let output3 = try p3(Iterated(value: input.value, position: output2.position, context: output2.context))
@@ -25,8 +25,8 @@ public func concat<I, O1, O2, O3>(p1: Parser<I, O1>, p2: Parser<I, O2>, p3: Pars
     }
 }
 
-public func concat<I, O1, O2, O3, O4>(p1: Parser<I, O1>, p2: Parser<I, O2>, p3: Parser<I, O3>, p4: Parser<I, O4>) -> Parser<I, (O1, O2, O3, O4)> {
-    Parser(name: "concat", description: "\(p1.description)\(p2.description)\(p3.description)") { input in
+public func seq<I, O1, O2, O3, O4>(p1: Parser<I, O1>, p2: Parser<I, O2>, p3: Parser<I, O3>, p4: Parser<I, O4>) -> Parser<I, (O1, O2, O3, O4)> {
+    Parser(name: "seq", description: "\(p1.description)\(p2.description)\(p3.description)") { input in
         let output1 = try p1(input)
         let output2 = try p2(Iterated(value: input.value, position: output1.position, context: output1.context))
         let output3 = try p3(Iterated(value: input.value, position: output2.position, context: output2.context))
