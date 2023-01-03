@@ -158,6 +158,14 @@ public func mapTo<Input, Output1, Output2>(_ parser: Parser<Input, Output1>, _ v
     }
 }
 
+public func bind<Input, Output1, Output2>(_ parser: Parser<Input, Output1>, _ factory: @escaping (Output1) -> Parser<Input, Output2>) -> Parser<Input, Output2> {
+    Parser(name: "bind", description: parser.description) { input in
+        let result = try parser(input)
+        let parser2 = factory(result.value)
+        return try parser2(.init(value: input.value, position: result.position, context: result.context))
+    }
+}
+
 public func prefix<I, O1, O2>(_ start: Parser<I, O1>, _ parser: Parser<I, O2>) -> Parser<I, O2> {
     (start + parser).map { $0.1 }
 }
@@ -173,7 +181,19 @@ public func delimited<I, O1, O2, O3>(_ start: Parser<I, O1>, _ parser: Parser<I,
 
 // doing nothing, but help compiler within some complex expression with binary operators
 public func pass<I, O>(_ parser: Parser<I, O>) -> Parser<I, O> {
-    return parser
+    parser
+}
+
+public func success<I, O>(_ value: O) -> Parser<I, O> {
+    Parser(name: "success", description: "\(value)") { input in
+        return Iterated(value: value, position: input.position, context: input.context)
+    }
+}
+
+public func fail<I>() -> Parser<I, Void> {
+    Parser(name: "fail") { input in
+        throw ParseError(message: "fail")
+    }
 }
 
 public func optional<I, O>(_ parser: Parser<I, O>) -> Parser<I, O?> {
@@ -192,6 +212,10 @@ public func lazy<I, O>(_ parser: @autoclosure @escaping () -> Parser<I, O>) -> P
 }
 
 public extension Parser {
+    func bind<Output2>(_ factory: @escaping (Output) -> Parser<Input, Output2>) -> Parser<Input, Output2> {
+        SwiftParserCombinator.bind(self, factory)
+    }
+
     func map<Output2>(_ fn: @escaping (Output) throws -> Output2) -> Parser<Input, Output2> {
         SwiftParserCombinator.map(self, fn)
     }

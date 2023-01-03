@@ -77,6 +77,25 @@ final class SwiftParserCombinatorTests: XCTestCase {
         }
     }
 
+    func testExpression() throws {
+        lazy var expr: Parser<String, Int> = {
+            (term + many0(prefix(char("+"), term))).map { lhs, rhs in
+                lhs + rhs.reduce(0, { $0 + $1 })
+            }
+        }()
+        lazy var term: Parser<String, Int> = {
+            (factor + many0(prefix(char("*"), factor))).map { lhs, rhs in
+                lhs * rhs.reduce(1, { $0 * $1 })
+            }
+        }()
+        lazy var factor: Parser<String, Int> = {
+            digit | lazy(expr)
+        }()
+        let digit = join(many(charRange("0", "9"))).map { Int($0)! }
+        let result = try expr(.init(value: "1+2+3*4*5"))
+        XCTAssertEqual(result.value, 63)
+    }
+
     static var allTests = [
         ("testOperators", testOperators),
         ("testHexColor", testHexColor),
